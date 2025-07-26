@@ -31,3 +31,7 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Request Tests from test_fake_cpp_project
+      run: |
+        echo "Requesting testing of fake_cpp_project ..."
