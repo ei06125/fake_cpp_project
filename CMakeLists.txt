@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(fake_cpp_project)
 
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 add_library(fake_cpp_lib ${BUILD_SHARED_LIBS}) # NOLINT
 file(GLOB_RECURSE fake_cpp_lib_SOURCES "src/*.[hc]pp")
 file(GLOB_RECURSE fake_cpp_lib_HEADERS "include/*.hpp")
