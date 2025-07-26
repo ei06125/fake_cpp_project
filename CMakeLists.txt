@@ -11,3 +11,17 @@ target_include_directories(
                       $<INSTALL_INTERFACE:include>)
 target_compile_features(fake_cpp_lib PUBLIC cxx_std_23)
 add_library(FAKE::fake_cpp_lib ALIAS fake_cpp_lib)
+
+install(TARGETS fake_cpp_lib
+  EXPORT fake_cpp_libTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include)
+
+install(DIRECTORY include/ DESTINATION include)
+
+install(EXPORT fake_cpp_libTargets
+  FILE fake_cpp_libTargets.cmake
+  NAMESPACE FAKE::
+  DESTINATION lib/cmake/fake_cpp_lib)
