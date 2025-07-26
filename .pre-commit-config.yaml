@@ -18,6 +18,6 @@ repos:
     rev: v1.0.1  # Use the tag or commit you want
     hooks:
       - id: clang-format
-        args: [--style=Google] # Other coding style: LLVM, GNU, Chromium, Microsoft, Mozilla, WebKit.
+        # args: [--style=LLVM] # using .clang-format
       # - id: clang-tidy
       #   args: [--checks='-boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*']
