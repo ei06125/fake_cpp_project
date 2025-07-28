@@ -35,6 +35,7 @@ jobs:
     - name: Request Tests from test_fake_cpp_project
       run: |
         echo "Requesting testing of fake_cpp_project ..."
+        set -e
         TARGET_REPO="ei06125/test_fake_cpp_project"
         WORKFLOW_ID="test.yaml"
         GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
