@@ -1,12 +1,15 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: Build fake_cpp_project
+name: Deploy fake_cpp_project
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      gitBranch:
+        description: 'The git branch to test'
+        required: false
+        default: 'main'
+        type: string
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -22,6 +25,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.inputs.gitBranch }}
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -32,18 +37,12 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Request Tests from test_fake_cpp_project
+    - name: Install
       run: |
-        echo "Requesting testing of fake_cpp_project ..."
-        set -e
-        TARGET_REPO="ei06125/test_fake_cpp_project"
-        WORKFLOW_ID="test.yaml"
-        GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
-        API_URL="https://api.github.com/repos/$TARGET_REPO/actions/workflows/$WORKFLOW_ID/dispatches"
-        # Trigger the workflow (customize ref and inputs as needed)
-        curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          $API_URL \
-          --data '{"ref":"main"}'
+        cmake --install ${{github.workspace}}/build --prefix install
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fake_cpp_lib-install
+        path: install/
