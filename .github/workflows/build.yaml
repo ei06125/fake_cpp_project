@@ -18,7 +18,7 @@ jobs:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
 
     steps:
     - uses: actions/checkout@v4
@@ -35,3 +35,13 @@ jobs:
     - name: Request Tests from test_fake_cpp_project
       run: |
         echo "Requesting testing of fake_cpp_project ..."
+        TARGET_REPO="ei06125/test_fake_cpp_project"
+        WORKFLOW_ID="test.yaml"
+        GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+        API_URL="https://api.github.com/repos/$TARGET_REPO/actions/workflows/$WORKFLOW_ID/dispatches"
+        # Trigger the workflow (customize ref and inputs as needed)
+        curl -X POST $API_URL \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          --data '{"ref":"main"}'
