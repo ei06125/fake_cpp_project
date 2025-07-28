@@ -41,8 +41,15 @@ jobs:
         GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
         API_URL="https://api.github.com/repos/$TARGET_REPO/actions/workflows/$WORKFLOW_ID/dispatches"
         # Trigger the workflow (customize ref and inputs as needed)
-        curl -X POST $API_URL \
+        curl -X POST \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
+          $API_URL \
           --data '{"ref":"main"}'
+        
+        if [ "$RESPONSE" -lt 200 ] || [ "$RESPONSE" -ge 300 ]; then      
+          echo "::error ::Failed to trigger workflow (HTTP $RESPONSE)"
+          cat response.txt
+          exit 1
+        fi
