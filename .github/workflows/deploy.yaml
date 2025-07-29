@@ -63,7 +63,7 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Package
+    - name: Package with CPACK
       run: |
         cpack ${{github.workspace}}/build
 
