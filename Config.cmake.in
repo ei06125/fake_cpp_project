@@ -1,0 +1,3 @@
+@PACKAGE_INIT@
+
+include ( "${CMAKE_CURRENT_LIST_DIR}/fake_cpp_libTargets.cmake" )
