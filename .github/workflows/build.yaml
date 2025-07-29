@@ -41,4 +41,4 @@ jobs:
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
           $API_URL \
-          --data '{"ref":"main"}'
+          --data '{"ref":"${{ github.ref_name }}"}'
