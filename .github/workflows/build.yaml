@@ -21,11 +21,26 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Check System Requirements
+      run: |
+        if command -v docker >/dev/null 2>&1; then
+          echo "Docker found"
+        else
+          echo "Docker NOT FOUND! Exiting..."
+          exit 1
+        fi
+
+    - name: Start Docker container
+      run: |
+        docker run --name fake_cpp_project-container -d -i -t -v .:/project alpine /bin/sh
+
     - name: Configure CMake
-      run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}
+      run: |
+        docker exec -w /project -d fake_cpp_project-container sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        docker exec -w /project -d fake_cpp_project-container sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
     - name: Request Tests from test_fake_cpp_project
       run: |
