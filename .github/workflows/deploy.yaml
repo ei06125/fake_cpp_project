@@ -63,9 +63,9 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Package
+    - name: Package with CPACK
       run: |
-        cpack ${{github.workspace}}/build
+        cpack ${{github.workspace}}/build -G TGZ
 
     - name: Deploy
       uses: actions/upload-release-asset@v1

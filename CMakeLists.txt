@@ -14,6 +14,7 @@ target_include_directories(
 target_compile_features(fake_cpp_lib PUBLIC cxx_std_23)
 add_library(FAKE::fake_cpp_lib ALIAS fake_cpp_lib)
 
+# INSTALLATION
 install(TARGETS fake_cpp_lib
   EXPORT fake_cpp_libTargets
   ARCHIVE DESTINATION lib
@@ -27,3 +28,33 @@ install(EXPORT fake_cpp_libTargets
   FILE fake_cpp_libTargets.cmake
   NAMESPACE FAKE::
   DESTINATION lib/cmake/fake_cpp_lib)
+
+# PACKAGING
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set(CPACK_PACKAGE_VERSION_MAJOR "${fake_cpp_project_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${fake_cpp_project_VERSION_MINOR}")
+include(CPack)
+
+include(CMakePackageConfigHelpers)
+# generate the config file that is includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/fake_cpp_libTargets.cmake"
+  INSTALL_DESTINATION "lib/cmake/fake_cpp_lib"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  )
+
+  write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/fake_cpp_libTargetsConfigVersion.cmake"
+  VERSION "${fake_cpp_libTargets_VERSION_MAJOR}.${fake_cpp_libTargets_VERSION_MINOR}"
+  COMPATIBILITY ExactVersion # <AnyNewerVersion|SameMajorVersion|SameMinorVersion|ExactVersion>
+)
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/fake_cpp_libConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/fake_cpp_libConfigVersion.cmake
+  DESTINATION lib/cmake/fake_cpp_lib
+  )
+  export(EXPORT fake_cpp_libTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/fake_cpp_libTargets.cmake"
+)
