@@ -41,4 +41,4 @@ jobs:
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
           $API_URL \
-          --data '{"ref":"main", "inputs":{"gitBranch":${{ github.event.pull_request.head.ref }}"}}'
+          --data '{"ref":"main", "inputs":{"gitBranch":"${{ github.event.pull_request.head.ref }}"}}'
