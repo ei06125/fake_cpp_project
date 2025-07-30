@@ -58,6 +58,7 @@ jobs:
     - name: Deploy
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: "experimental"
         files: |
           install/fake_cpp_project.zip
           install/fake_cpp_project.tgz
