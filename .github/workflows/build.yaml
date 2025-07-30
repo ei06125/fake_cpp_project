@@ -45,7 +45,6 @@ jobs:
           build-base \
           python3 \
           git \
-          libexecinfo-dev \
           zlib-dev"
 
     - name: Generate
