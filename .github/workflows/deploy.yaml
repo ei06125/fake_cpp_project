@@ -52,7 +52,7 @@ jobs:
 
     - name: Install
       run: |
-        docker exec -w /project -d fake_cpp_project-container sh -c "cmake --install build --prefix install
+        docker exec -w /project -d fake_cpp_project-container sh -c "cmake --install build --prefix install"
 
     - name: Package with CPACK
       run: |
