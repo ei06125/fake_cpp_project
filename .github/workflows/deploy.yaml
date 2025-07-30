@@ -8,6 +8,9 @@ on:
         required: false
         default: 'main'
         type: string
+      container_id:
+        description: "The github run ID from build.yaml"
+        required: true
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -43,21 +46,14 @@ jobs:
       with:
         ref: ${{ github.inputs.gitBranch }}
 
-    # - name: Configure CMake
-    #   run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}
-
-    # - name: Build
-    #   # Build your program with the given configuration
-    #   run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
     - name: Install
       run: |
-        docker exec -w /project -d fake_cpp_project-container sh -c "cmake --install build --prefix install"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
 
     - name: Package with CPACK
       run: |
-        docker exec -w /project -d fake_cpp_project-container sh -c "cpack build -G TGZ"
-        docker exec -w /project -d fake_cpp_project-container sh -c "cpack build -G ZIP"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP"
 
     - name: Deploy
       uses: softprops/action-gh-release@v2
@@ -68,5 +64,5 @@ jobs:
 
     - name: Teardown
       run:
-        docker container stop fake_cpp_project-container
-        docker container rm fake_cpp_project-container
+        docker container stop fake_cpp_project-container-${{ inputs.container_id }}
+        docker container rm fake_cpp_project-container-${{ inputs.container_id }}
