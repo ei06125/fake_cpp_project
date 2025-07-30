@@ -52,16 +52,22 @@ jobs:
 
     - name: Package
       run: |
-        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ"
-        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ -B packages"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP -B packages"
+
+    - name: Debug
+      run: |
+        pwd
+        ls
+        ls packages
 
     - name: Deploy
       uses: softprops/action-gh-release@v2
       with:
         tag_name: "experimental"
         files: |
-          install/fake_cpp_project.zip
-          install/fake_cpp_project.tgz
+          packages/fake_cpp_project.zip
+          packages/fake_cpp_project.tgz
 
     - name: Teardown
       run:
