@@ -48,12 +48,12 @@ jobs:
 
     - name: Install
       run: |
-        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
+        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
 
     - name: Package
       run: |
-        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ -B packages"
-        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP -B packages"
+        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ -B packages"
+        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP -B packages"
 
     - name: Debug
       run: |

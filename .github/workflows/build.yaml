@@ -36,11 +36,11 @@ jobs:
 
     - name: Configure
       run: |
-        docker exec -w /project -d fake_cpp_project-container-${{ github.run_id }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
 
     - name: Build
       run: |
-        docker exec -w /project -d fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
     - name: Request Tests from test_fake_cpp_project
       run: |
