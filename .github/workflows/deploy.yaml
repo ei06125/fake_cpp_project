@@ -8,6 +8,9 @@ on:
         required: false
         default: 'main'
         type: string
+      container_id:
+        description: "The github run ID from build.yaml"
+        required: true
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -43,36 +46,23 @@ jobs:
       with:
         ref: ${{ github.inputs.gitBranch }}
 
-    - name: Configure CMake
-      run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}
-
-    - name: Build
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
     - name: Install
       run: |
-        cmake --install ${{github.workspace}}/build --prefix install
-
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
-        draft: false
-        prerelease: false
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
 
     - name: Package
       run: |
-        cpack ${{github.workspace}}/build
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ"
+        docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP"
 
     - name: Deploy
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./install
-        asset_name: fake_cpp_lib-${{ github.ref_name }}.zip
-        asset_content_type: application/zip
+        files: |
+          install/fake_cpp_project.zip
+          install/fake_cpp_project.tgz
+
+    - name: Teardown
+      run:
+        docker container stop fake_cpp_project-container-${{ inputs.container_id }}
+        docker container rm fake_cpp_project-container-${{ inputs.container_id }}
