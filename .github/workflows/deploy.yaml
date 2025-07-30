@@ -46,6 +46,14 @@ jobs:
       with:
         ref: ${{ github.inputs.gitBranch }}
 
+    - name: Generate
+      run: |
+        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
+
+    - name: Build
+      run: |
+        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
+
     - name: Install
       run: |
         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
