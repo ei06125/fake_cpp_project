@@ -30,11 +30,11 @@ jobs:
           exit 1
         fi
 
-    - name: Start Docker container
+    - name: Setup
       run: |
         docker run --name fake_cpp_project-container-${{ github.run_id }} -d -i -t -v .:/project alpine /bin/sh
 
-    - name: Configure CMake
+    - name: Configure
       run: |
         docker exec -w /project -d fake_cpp_project-container-${{ github.run_id }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
 
