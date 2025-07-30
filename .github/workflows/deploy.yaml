@@ -50,7 +50,7 @@ jobs:
       run: |
         docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
 
-    - name: Package with CPACK
+    - name: Package
       run: |
         docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ"
         docker exec -w /project -d fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP"
