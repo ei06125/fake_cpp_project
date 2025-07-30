@@ -36,7 +36,17 @@ jobs:
 
     - name: Configure
       run: |
-        docker exec fake_cpp_project-container-${{ github.run_id }} sh -c "apt-get update && apt-get install cmake clang ninja-build"
+        docker exec fake_cpp_project-container-${{ github.run_id }} sh -c "apk update && apk add \
+          clang \
+          lld \
+          ninja \
+          ccache \
+          cmake \
+          build-base \
+          python3 \
+          git \
+          libexecinfo-dev \
+          zlib-dev"
 
     - name: Generate
       run: |
