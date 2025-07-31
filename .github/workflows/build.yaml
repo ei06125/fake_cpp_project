@@ -157,8 +157,11 @@ jobs:
 
     - name: Debug
       run: |
+        echo "===> pwd"
         pwd
+        echo "===> ls"
         ls
+        echo "===> ls packages"
         ls packages
 
     - name: Deploy
@@ -166,7 +169,7 @@ jobs:
       with:
         tag_name: "experimental"
         files: |
-          packages/**
+          packages/fake_cpp_project*
         draft: true
         prerelease: true
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
