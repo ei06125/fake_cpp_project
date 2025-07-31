@@ -12,7 +12,7 @@ on:
     outputs:
       build_result:
         description: "Returns if the Build succeeded."
-        value: ${{ jobs.tests.outputs.build_result }}
+        value: ${{ jobs.on-tests-completed.outputs.build_result }}
 
 env:
   BUILD_TYPE: Release
@@ -54,107 +54,36 @@ jobs:
       run: |
         docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
-  tests:
-    runs-on: [self-hosted, macOS, ARM64]
+  request-tests:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ei06125/test_fake_cpp_project/.github/workflows/test.yaml@main    
+    with:
+      gitBranch: ${{ inputs.gitBranch }}
+      container_id: ${{ github.run_id }}
     needs: build
+  
+  on-tests-completed:
+    runs-on: [self-hosted, macOS, ARM64]
+    needs: 
+      - build
+      - request-tests
     outputs:
-      build_result: ${{ steps.wait_test_results.outputs.build_result }}
+      build_result: ${{ steps.on-tests-completed.outputs.build_result }}
     steps:
-    - name: Request Tests from test_fake_cpp_project
+    - id: on-tests-completed
+      name: On Tests Completed Callback
       run: |
-        echo "Requesting testing of fake_cpp_project ..."
-        set -e
-        TARGET_REPO="ei06125/test_fake_cpp_project"
-        WORKFLOW_ID="test.yaml"
-        GITHUB_TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
-        API_URL="https://api.github.com/repos/$TARGET_REPO/actions/workflows/$WORKFLOW_ID/dispatches"
-        # Trigger the workflow (customize ref and inputs as needed)
-        curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          $API_URL \
-          --data '{"ref":"${{ inputs.gitBranch }}", "inputs":{"gitBranch":"main", "container_id":"${{ github.run_id }}"}}'
-
-    - id: wait_test_results
-      name: Wait for test_fake_cpp_project workflow to finish
-      run: |
-        set -e
-
-        echo "Waiting for workflow run to complete..."
-
-        REPO="ei06125/test_fake_cpp_project"
-        WORKFLOW_ID="test.yaml"
-        BRANCH="${{ inputs.gitBranch }}"
-        TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
-
-        # Get latest workflow run for the given workflow + branch
-        get_latest_run_id() {
-          curl -s -H "Accept: application/vnd.github+json" \
-               -H "Authorization: Bearer $TOKEN" \
-               "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW_ID/runs?branch=$BRANCH&event=workflow_dispatch&per_page=1" |
-            jq -r '.workflow_runs[0].id'
-        }
-
-        wait_for_completion() {
-          local run_id="$1"
-          local conclusion=""
-
-          for i in {1..30}; do
-            sleep 10
-
-            response=$(curl -s -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer $TOKEN" \
-                            "https://api.github.com/repos/$REPO/actions/runs/$run_id")
-
-            status=$(echo "$response" | jq -r '.status')
-            conclusion=$(echo "$response" | jq -r '.conclusion')
-
-            echo "Status: $status"
-
-            if [[ "$status" == "completed" ]]; then
-              echo "Workflow finished with conclusion: $conclusion"
-              break
-            fi
-          done
-
-          if [[ "$status" != "completed" ]]; then
-            echo "::error ::Timeout waiting for workflow run to complete"
-            echo "build_result=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-
-          if [[ "$conclusion" != "success" ]]; then
-            echo "::error ::Workflow failed or timed out"
-            echo "build_result=false" >> $GITHUB_OUTPUT
-            exit 1
-          else
-            echo "build_result=true" >> $GITHUB_OUTPUT
-          fi
-        }
-
-        sleep 10
-        run_id=$(get_latest_run_id)
-        if [ "$run_id" == "null" ]; then
-          echo "::error ::Unable to find a workflow run for $WORKFLOW_ID on branch $BRANCH"
-          echo "build_result=false" >> $GITHUB_OUTPUT
-          exit 1
-        fi
-
-        echo "Found workflow run ID: $run_id"
-        wait_for_completion "$run_id"
-
-    - id: summary
-      name: Tests Summary
-      run: |
-        echo "✅ Tests completed successfully."
+        echo "build_result=${{ needs.request-tests.outputs.test_result }}" >> $GITHUB_OUTPUT
 
   teardown:
     runs-on: [self-hosted, macOS, ARM64]
     if: always()
     needs:
       - build
-      - tests
+      - request-tests
+      - on-tests-completed
     steps:
     - name: Teardown
       run: |
