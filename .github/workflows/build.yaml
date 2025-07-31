@@ -167,6 +167,7 @@ jobs:
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Teardown
+      if: always()
       run: |
-        docker container stop fake_cpp_project-container-${{ github.run_id  }}
-        docker container rm fake_cpp_project-container-${{ github.run_id  }}
+        docker container stop fake_cpp_project-container-${{ github.run_id  }} || echo "Container already stopped"
+        docker container rm fake_cpp_project-container-${{ github.run_id  }} || echo "Container already removed"
