@@ -55,14 +55,14 @@ jobs:
         docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
   request-tests:
+    needs: build
     permissions:
       contents: read
       pull-requests: write
     uses: ei06125/test_fake_cpp_project/.github/workflows/test.yaml@main    
     with:
       gitBranch: ${{ inputs.gitBranch }}
-      container_id: ${{ github.run_id }}
-    needs: build
+    secrets: inherit
   
   on-tests-completed:
     runs-on: [self-hosted, macOS, ARM64]
