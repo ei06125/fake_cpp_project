@@ -127,6 +127,7 @@ jobs:
           fi
         }
 
+        sleep 10
         run_id=$(get_latest_run_id)
         if [ "$run_id" == "null" ]; then
           echo "::error ::Unable to find a workflow run for $WORKFLOW_ID on branch $BRANCH"
@@ -155,15 +156,6 @@ jobs:
       run: |
         docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cmake --build build --target run_cmake_pack"
 
-    - name: Debug
-      run: |
-        echo "===> pwd"
-        pwd
-        echo "===> ls"
-        ls
-        echo "===> ls packages"
-        ls packages
-
     - name: Deploy
       uses: softprops/action-gh-release@v2
       with:
@@ -174,7 +166,15 @@ jobs:
         prerelease: true
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+  teardown:
+    runs-on: [self-hosted, macOS, ARM64]
+    if: always()
+    needs:
+      - build
+      - tests
+      - deploy
+    steps:
     - name: Teardown
       run: |
-        docker container stop fake_cpp_project-container-${{ github.run_id  }}
-        docker container rm fake_cpp_project-container-${{ github.run_id  }}
+        docker container stop fake_cpp_project-container-${{ github.run_id  }} || echo "Container already stopped"
+        docker container rm fake_cpp_project-container-${{ github.run_id  }} || echo "Container already removed"
