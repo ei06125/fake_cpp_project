@@ -56,7 +56,6 @@ jobs:
     uses: ei06125/test_fake_cpp_project/.github/workflows/test.yaml@main    
     with:
       gitBranch: ${{ github.head_ref }}
-      container_id: ${{ github.run_id }}
 
   on-tests-completed:
     runs-on: [self-hosted, macOS, ARM64]
