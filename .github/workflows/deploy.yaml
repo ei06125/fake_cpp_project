@@ -1,83 +1,83 @@
-name: Deploy fake_cpp_project
+# name: Deploy fake_cpp_project
 
-on:
-  workflow_dispatch:
-    inputs:
-      gitBranch:
-        description: 'The git branch to test'
-        required: false
-        default: 'main'
-        type: string
-      container_id:
-        description: "The github run ID from build.yaml"
-        required: true
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       gitBranch:
+#         description: 'The git branch to test'
+#         required: false
+#         default: 'main'
+#         type: string
+#       container_id:
+#         description: "The github run ID from build.yaml"
+#         required: true
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-  GENERATOR: Ninja
+# env:
+#   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+#   BUILD_TYPE: Release
+#   GENERATOR: Ninja
 
 
-# You can use permissions to modify the default permissions granted to the GITHUB_TOKEN, adding or removing access as required, so that you only allow the minimum required access.
-permissions:
-  actions: none
-  attestations: none
-  checks: none # allows an action to create a check run
-  contents: write # allows an action to create a release
-  deployments: none
-  id-token: none
-  issues: none
-  models: none
-  discussions: none
-  packages: write # allows an action to upload and publish packages to GitHub Packages
-  pages: none
-  pull-requests: write # allows an action to add a label to a pull request
-  security-events: none
-  statuses: none
+# # You can use permissions to modify the default permissions granted to the GITHUB_TOKEN, adding or removing access as required, so that you only allow the minimum required access.
+# permissions:
+#   actions: none
+#   attestations: none
+#   checks: none # allows an action to create a check run
+#   contents: write # allows an action to create a release
+#   deployments: none
+#   id-token: none
+#   issues: none
+#   models: none
+#   discussions: none
+#   packages: write # allows an action to upload and publish packages to GitHub Packages
+#   pages: none
+#   pull-requests: write # allows an action to add a label to a pull request
+#   security-events: none
+#   statuses: none
 
-jobs:
-  deploy:
-    runs-on: [self-hosted, macOS, ARM64]
-    environment: production
-    concurrency: production
+# jobs:
+#   deploy:
+#     runs-on: [self-hosted, macOS, ARM64]
+#     environment: production
+#     concurrency: production
 
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.inputs.gitBranch }}
+#     steps:
+#     - uses: actions/checkout@v4
+#       with:
+#         ref: ${{ github.inputs.gitBranch }}
 
-    - name: Generate
-      run: |
-        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
+#     - name: Generate
+#       run: |
+#         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G ${{ env.GENERATOR }}"
 
-    - name: Build
-      run: |
-        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
+#     - name: Build
+#       run: |
+#         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id  }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
-    - name: Install
-      run: |
-        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
+#     - name: Install
+#       run: |
+#         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cmake --install build --prefix install"
 
-    - name: Package
-      run: |
-        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ -B packages"
-        docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP -B packages"
+#     - name: Package
+#       run: |
+#         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G TGZ -B packages"
+#         docker exec -w /project fake_cpp_project-container-${{ inputs.container_id }} sh -c "cpack build -G ZIP -B packages"
 
-    - name: Debug
-      run: |
-        pwd
-        ls
-        ls packages
+#     - name: Debug
+#       run: |
+#         pwd
+#         ls
+#         ls packages
 
-    - name: Deploy
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: "experimental"
-        files: |
-          packages/fake_cpp_project.zip
-          packages/fake_cpp_project.tgz
+#     - name: Deploy
+#       uses: softprops/action-gh-release@v2
+#       with:
+#         tag_name: "experimental"
+#         files: |
+#           packages/fake_cpp_project.zip
+#           packages/fake_cpp_project.tgz
 
-    - name: Teardown
-      run:
-        docker container stop fake_cpp_project-container-${{ inputs.container_id }}
-        docker container rm fake_cpp_project-container-${{ inputs.container_id }}
+#     - name: Teardown
+#       run:
+#         docker container stop fake_cpp_project-container-${{ inputs.container_id }}
+#         docker container rm fake_cpp_project-container-${{ inputs.container_id }}

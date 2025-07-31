@@ -55,6 +55,10 @@ jobs:
       run: |
         docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
+  test:
+    runs-on: [self-hosted, macOS, ARM64]
+    needs: build
+    steps:
     - name: Request Tests from test_fake_cpp_project
       run: |
         echo "Requesting testing of fake_cpp_project ..."
@@ -126,3 +130,38 @@ jobs:
 
         echo "Found workflow run ID: $run_id"
         wait_for_completion "$run_id"
+
+  deploy:
+    runs-on: [self-hosted, macOS, ARM64]
+    needs:
+      - build
+      - tests
+    
+    steps:
+    - name: Install
+      run: |
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cmake --install build --prefix install"
+
+    - name: Package
+      run: |
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cpack build -G TGZ -B packages"
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cpack build -G ZIP -B packages"
+
+    - name: Debug
+      run: |
+        pwd
+        ls
+        ls packages
+
+    - name: Deploy
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: "experimental"
+        files: |
+          packages/fake_cpp_project.zip
+          packages/fake_cpp_project.tgz
+
+    - name: Teardown
+      run:
+        docker container stop fake_cpp_project-container-${{ github.run_id  }}
+        docker container rm fake_cpp_project-container-${{ github.run_id  }}
