@@ -2,13 +2,13 @@ name: Main-Build
 run-name: Build, Test and Deploy fake_cpp_project
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "dev" ] # Trigger on push to dev (we don't allow push to main)
   pull_request:
     branches: [ "main", "dev" ] # Trigger on PRs to main or dev
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   GENERATOR: Ninja
 
@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        path: project
 
     - name: Check System Requirements
       run: |
@@ -25,7 +27,7 @@ jobs:
 
     - name: Setup
       run: |
-        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v .:/project alpine /bin/sh
+        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v ./project:/project alpine /bin/sh
 
     - name: Configure
       run: |
@@ -56,7 +58,7 @@ jobs:
     uses: ei06125/test_fake_cpp_project/.github/workflows/test.yaml@main    
     with:
       gitBranch: ${{ github.head_ref }}
-      container_id: ${{ github.run_id }}
+    secrets: inherit
 
   on-tests-completed:
     runs-on: [self-hosted, macOS, ARM64]
@@ -67,6 +69,12 @@ jobs:
     steps:
       - id: on-tests-completed-eval
         run: |
+          echo "ls workspace"
+          ls ${{ github.workspace }}
+          echo "ls workspace/project"
+          ls ${{ github.workspace }}/project
+          echo "ls workspace/project-tests"
+          ls ${{ github.workspace }}/project-tests
           if [ ${{ needs.request-tests.outputs.test_result }} ]; then
             echo "Tests succeeded"
             exit 0
@@ -106,7 +114,8 @@ jobs:
     if: always()
     needs:
       - build
-      - tests
+      - request-tests
+      - on-tests-completed
       - deploy
     steps:
     - name: Teardown

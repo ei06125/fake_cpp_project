@@ -24,6 +24,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        path: project
 
     - name: Check System Requirements
       run: |
@@ -31,7 +33,7 @@ jobs:
 
     - name: Setup
       run: |
-        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v .:/project alpine /bin/sh
+        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v ./project:/project alpine /bin/sh
 
     - name: Configure
       run: |
@@ -55,14 +57,14 @@ jobs:
         docker exec -w /project fake_cpp_project-container-${{ github.run_id }} sh -c "cmake --build build --config ${{env.BUILD_TYPE}}"
 
   request-tests:
+    needs: build
     permissions:
       contents: read
       pull-requests: write
     uses: ei06125/test_fake_cpp_project/.github/workflows/test.yaml@main    
     with:
       gitBranch: ${{ inputs.gitBranch }}
-      container_id: ${{ github.run_id }}
-    needs: build
+    secrets: inherit
   
   on-tests-completed:
     runs-on: [self-hosted, macOS, ARM64]
