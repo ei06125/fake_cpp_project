@@ -167,6 +167,9 @@ jobs:
         tag_name: "experimental"
         files: |
           packages/**
+        draft: true
+        prerelease: true
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Teardown
       run:
