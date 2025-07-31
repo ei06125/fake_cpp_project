@@ -67,7 +67,7 @@ jobs:
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
           $API_URL \
-          --data '{"ref":"${{ gitBranch }}", "inputs":{"gitBranch":"main", "container_id":"${{ github.run_id }}"}}'
+          --data '{"ref":"${{ inputs.gitBranch }}", "inputs":{"gitBranch":"main", "container_id":"${{ github.run_id }}"}}'
 
     - name: Wait for test_fake_cpp_project workflow to finish
       run: |
@@ -77,7 +77,7 @@ jobs:
 
         REPO="ei06125/test_fake_cpp_project"
         WORKFLOW_ID="test.yaml"
-        BRANCH="main"
+        BRANCH="${{ inputs.gitBranch }}"
         TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
         # Get latest workflow run for the given workflow + branch
