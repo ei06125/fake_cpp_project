@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        path: project
 
     - name: Check System Requirements
       run: |
@@ -25,7 +27,7 @@ jobs:
 
     - name: Setup
       run: |
-        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v .:/project alpine /bin/sh
+        docker run --name fake_cpp_project-container-${{ github.run_id }} --detach -i -t -v project:/project alpine /bin/sh
 
     - name: Configure
       run: |
