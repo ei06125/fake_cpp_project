@@ -79,7 +79,7 @@ jobs:
 
         REPO="ei06125/test_fake_cpp_project"
         WORKFLOW_ID="test.yaml"
-        BRANCH="${{ github.event.pull_request.head.ref || github.ref_name }}"
+        BRANCH="main"
         TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
         # Get latest workflow run for the given workflow + branch
