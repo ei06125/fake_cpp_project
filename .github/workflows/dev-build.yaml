@@ -1,13 +1,18 @@
-name: Build fake_cpp_project
+name: Dev-Build
+run-name: Validate Testing Framework
 
 on:
   workflow_call:
     inputs:
       gitBranch:
-        description: "The git branch of the test_fake_cpp_project"
+        description: "The git branch of the test_fake_cpp_project to validate"
         required: true
-        default: 'main'
+        default: 'dev' # It should never be main, so we default to 'dev'
         type: string
+    outputs:
+      build_result:
+        description: "Returns if the Build succeeded."
+        value: ${{ jobs.tests.outputs.build_result }}
 
 env:
   BUILD_TYPE: Release
@@ -52,6 +57,8 @@ jobs:
   tests:
     runs-on: [self-hosted, macOS, ARM64]
     needs: build
+    outputs:
+      build_result: ${{ steps.wait_test_results.outputs.build_result }}
     steps:
     - name: Request Tests from test_fake_cpp_project
       run: |
@@ -69,7 +76,8 @@ jobs:
           $API_URL \
           --data '{"ref":"${{ inputs.gitBranch }}", "inputs":{"gitBranch":"main", "container_id":"${{ github.run_id }}"}}'
 
-    - name: Wait for test_fake_cpp_project workflow to finish
+    - id: wait_test_results
+      name: Wait for test_fake_cpp_project workflow to finish
       run: |
         set -e
 
@@ -112,12 +120,16 @@ jobs:
 
           if [[ "$status" != "completed" ]]; then
             echo "::error ::Timeout waiting for workflow run to complete"
+            echo "build_result=false" >> $GITHUB_OUTPUT
             exit 1
           fi
 
           if [[ "$conclusion" != "success" ]]; then
             echo "::error ::Workflow failed or timed out"
+            echo "build_result=false" >> $GITHUB_OUTPUT
             exit 1
+          else
+            echo "build_result=true" >> $GITHUB_OUTPUT
           fi
         }
 
@@ -125,13 +137,14 @@ jobs:
         run_id=$(get_latest_run_id)
         if [ "$run_id" == "null" ]; then
           echo "::error ::Unable to find a workflow run for $WORKFLOW_ID on branch $BRANCH"
+          echo "build_result=false" >> $GITHUB_OUTPUT
           exit 1
         fi
 
         echo "Found workflow run ID: $run_id"
         wait_for_completion "$run_id"
 
-    - id: Summary
+    - id: summary
       name: Tests Summary
       run: |
         echo "✅ Tests completed successfully."
