@@ -155,15 +155,6 @@ jobs:
       run: |
         docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cmake --build build --target run_cmake_pack"
 
-    - name: Debug
-      run: |
-        echo "===> pwd"
-        pwd
-        echo "===> ls"
-        ls
-        echo "===> ls packages"
-        ls packages
-
     - name: Deploy
       uses: softprops/action-gh-release@v2
       with:
