@@ -2,13 +2,13 @@ name: Main-Build
 run-name: Build, Test and Deploy fake_cpp_project
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "dev" ] # Trigger on push to dev (we don't allow push to main)
   pull_request:
     branches: [ "main", "dev" ] # Trigger on PRs to main or dev
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   GENERATOR: Ninja
 
