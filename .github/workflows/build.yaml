@@ -70,3 +70,59 @@ jobs:
           -H "Content-Type: application/json" \
           $API_URL \
           --data '{"ref":"main", "inputs":{"gitBranch":"${{ github.event.pull_request.head.ref }}", "container_id":"${{ github.run_id }}"}}'
+
+    - name: Wait for test_fake_cpp_project workflow to finish
+      run: |
+        set -e
+
+        echo "Waiting for workflow run to complete..."
+
+        REPO="ei06125/test_fake_cpp_project"
+        WORKFLOW_ID="test.yaml"
+        BRANCH="${{ github.event.pull_request.head.ref || github.ref_name }}"
+        TOKEN="${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+
+        # Get latest workflow run for the given workflow + branch
+        get_latest_run_id() {
+          curl -s -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer $TOKEN" \
+               "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW_ID/runs?branch=$BRANCH&event=workflow_dispatch&per_page=1" |
+            jq -r '.workflow_runs[0].id'
+        }
+
+        wait_for_completion() {
+          local run_id="$1"
+          local conclusion=""
+
+          for i in {1..30}; do
+            sleep 10
+
+            response=$(curl -s -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer $TOKEN" \
+                            "https://api.github.com/repos/$REPO/actions/runs/$run_id")
+
+            status=$(echo "$response" | jq -r '.status')
+            conclusion=$(echo "$response" | jq -r '.conclusion')
+
+            echo "Status: $status"
+
+            if [[ "$status" == "completed" ]]; then
+              echo "Workflow finished with conclusion: $conclusion"
+              break
+            fi
+          done
+
+          if [[ "$conclusion" != "success" ]]; then
+            echo "::error ::Workflow failed or timed out"
+            exit 1
+          fi
+        }
+
+        run_id=$(get_latest_run_id)
+        if [ "$run_id" == "null" ]; then
+          echo "::error ::Unable to find a workflow run for $WORKFLOW_ID on branch $BRANCH"
+          exit 1
+        fi
+
+        echo "Found workflow run ID: $run_id"
+        wait_for_completion "$run_id"
