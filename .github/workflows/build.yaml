@@ -175,6 +175,6 @@ jobs:
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Teardown
-      run:
+      run: |
         docker container stop fake_cpp_project-container-${{ github.run_id  }}
         docker container rm fake_cpp_project-container-${{ github.run_id  }}
