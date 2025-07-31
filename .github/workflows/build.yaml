@@ -116,6 +116,11 @@ jobs:
             fi
           done
 
+          if [[ "$status" != "completed" ]]; then
+            echo "::error ::Timeout waiting for workflow run to complete"
+            exit 1
+          fi
+
           if [[ "$conclusion" != "success" ]]; then
             echo "::error ::Workflow failed or timed out"
             exit 1
@@ -131,16 +136,16 @@ jobs:
         echo "Found workflow run ID: $run_id"
         wait_for_completion "$run_id"
 
-    - name:
+    - name: Deploy Checkpoint
       run: |
-        echo "Ready for deployment"
+        echo "✅ Tests completed successfully. Proceeding to deploy."
 
   deploy:
     runs-on: [self-hosted, macOS, ARM64]
     needs:
       - build
       - tests
-    
+
     steps:
     - name: Install
       run: |
@@ -161,8 +166,7 @@ jobs:
       with:
         tag_name: "experimental"
         files: |
-          packages/fake_cpp_project.zip
-          packages/fake_cpp_project.tgz
+          packages/**
 
     - name: Teardown
       run:
