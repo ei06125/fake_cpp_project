@@ -131,6 +131,10 @@ jobs:
         echo "Found workflow run ID: $run_id"
         wait_for_completion "$run_id"
 
+    - name:
+      run: |
+        echo "Ready for deployment"
+
   deploy:
     runs-on: [self-hosted, macOS, ARM64]
     needs:
@@ -144,8 +148,7 @@ jobs:
 
     - name: Package
       run: |
-        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cpack build -G TGZ -B packages"
-        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cpack build -G ZIP -B packages"
+        docker exec -w /project fake_cpp_project-container-${{ github.run_id  }} sh -c "cmake --build build --target run_cmake_pack"
 
     - name: Debug
       run: |
