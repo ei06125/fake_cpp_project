@@ -69,6 +69,12 @@ jobs:
     steps:
       - id: on-tests-completed-eval
         run: |
+          echo "ls workspace"
+          ls ${{ github.workspace }}
+          echo "ls workspace/project"
+          ls ${{ github.workspace }}/project
+          echo "ls workspace/project-tests"
+          ls ${{ github.workspace }}/project-tests
           if [ ${{ needs.request-tests.outputs.test_result }} ]; then
             echo "Tests succeeded"
             exit 0
