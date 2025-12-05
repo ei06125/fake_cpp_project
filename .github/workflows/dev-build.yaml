@@ -20,7 +20,7 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
     secrets: inherit
   
   on-tests-completed:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [ubuntu-latest]
     needs: 
       - build
       - request-tests
@@ -80,7 +80,7 @@ jobs:
         echo "build_result=${{ needs.request-tests.outputs.test_result }}" >> $GITHUB_OUTPUT
 
   teardown:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [ubuntu-latest]
     if: always()
     needs:
       - build
